@@ -22,3 +22,7 @@ test*.py
 MANIFEST
 *.log
 *.log.*
+
+
+# config
+*.conf

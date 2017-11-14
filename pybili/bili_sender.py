@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #coding=utf-8
 import requests
+import ocr
 import json
 import time 
 import sys
@@ -165,7 +166,6 @@ class Sender(object):
 
     def startFreeSilverThread(self):
         print 'init ocr function...'
-        import ocr
         if self.cookies:
             print 'checking free silver coins...'
             thread.start_new_thread(self.checkFreeSilver, ())
