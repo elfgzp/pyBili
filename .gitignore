@@ -22,7 +22,7 @@ test*.py
 MANIFEST
 *.log
 *.log.*
-
+.idea/
 
 # config
 *.conf

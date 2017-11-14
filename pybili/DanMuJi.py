@@ -98,10 +98,9 @@ def initHandlers(roomid, config_path=None):
 def main():
     argv = sys.argv
     roomid = 234024
-    if len(argv) == 2: roomid = int(argv[1])
-
-
-    if len(argv) == 3:
+    if len(argv) >= 2:
+        roomid = int(argv[1])
+    if len(argv) >= 3:
         path = argv[2]
         config = bili_config.Config(path=path)
         bili.BiliHelper(roomid, *initHandlers(roomid, config_path=path))
