@@ -202,7 +202,7 @@ class RewardResponseHandler(SimpleDanmakuHandler):
                 if 'roomid' in raw:
                     roomid = str(raw['roomid'])
                     tm = time.strftime(self.date_format, time.localtime(time.time() + 180 + 18000))
-                    self.sender.sendDanmaku(self.roomid, '%s房间小电视啦，有效期至%s' % (roomid, tm))
+                    # self.sender.sendDanmaku(self.roomid, '%s房间小电视啦，有效期至%s' % (roomid, tm))
 
 class AutoRewardHandler(SimpleDanmakuHandler):
 
