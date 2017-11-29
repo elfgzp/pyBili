@@ -11,6 +11,7 @@ import logging.handlers
 import os.path
 import pybili
 
+LOGIN_CHECK_URL = 'http://api.live.bilibili.com/User/getUserInfo'
 SEND_URL = 'http://live.bilibili.com/msg/send'
 TV_URL = 'http://api.live.bilibili.com/SmallTV/join'
 QUERY_RAFFLE_URL = 'http://api.live.bilibili.com/activity/v1/Raffle/check'
@@ -40,6 +41,7 @@ class Sender(object):
         self.logger = logger
 
         self.cookies = cookies
+        self.checkLogin()
         self.lightenIds = set()
         self.raffleIds = set()
 
@@ -64,6 +66,13 @@ class Sender(object):
         if raw['code'] != 0:
             self.logger.warn("API %s fail! MSG: %s" % (url, raw['msg']))
         return raw
+
+    def checkLogin(self):
+        r = self._get(LOGIN_CHECK_URL)
+        if r and r['code'] == 'REPONSE_OK':
+            self.logger.info('%s 登录成功' % r['data']['uname'])
+        else:
+            self.logger.info('登录失败!')
 
     def sendDanmaku(self, roomid, content, color='white'):
         content = content.strip()
@@ -90,6 +99,7 @@ class Sender(object):
             'id': tv_id,
             '_': int(time.time() * 100)
         }
+        self.logger.info('参与 %s 小电视抽奖' % roomid)
         self._get(TV_URL, params)
 
     def _joinRaffle(self, roomid, raffleId):
@@ -110,6 +120,7 @@ class Sender(object):
             for d in r['data']:
                 raffleId = d['raffleId']
                 if raffleId not in self.raffleIds:
+                    self.logger.info('参与 %s 抽奖' % roomid)
                     self._joinRaffle(roomid, raffleId)
                     self.raffleIds.add(raffleId)
                     thread.start_new_thread(self.checkRaffle, (roomid, raffleId))
@@ -130,7 +141,7 @@ class Sender(object):
                 if r and r['data']:
                     if r['data']['gift_id'] > 0:
                         print 'get!name:%s, cnt:%d' % (r['data']['gift_name'], r['data']['gift_num'])
-                        self.logger.info('get!name:%s, cnt:%d' % (r['data']['gift_name'], r['data']['gift_num']))
+                        self.logger.info('获得奖品:%s, 数量:%d' % (r['data']['gift_name'], r['data']['gift_num']))
                     elif r['data']['gift_id'] == -1:
                         self.logger.info('empty!')
                     else:
@@ -180,6 +191,7 @@ class Sender(object):
             if r['data']['time_end'] < cur:
                 self.getFreeSilver(r['data'])
                 return 180
+            self.logger.info('%s 秒后再次获取瓜子' % int(r['data']['time_end'] - cur))
             return int(r['data']['time_end'] - cur)
 
     def startFreeSilverThread(self):
