@@ -70,7 +70,7 @@ class Sender(object):
     def checkLogin(self):
         r = self._get(LOGIN_CHECK_URL)
         if r and r['code'] == 'REPONSE_OK':
-            print u'%s 登录成功' % r['data']['uname']
+            print u'%s Login' % r['data']['uname']
         else:
             print u'登录失败!'
 
