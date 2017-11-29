@@ -70,9 +70,9 @@ class Sender(object):
     def checkLogin(self):
         r = self._get(LOGIN_CHECK_URL)
         if r and r['code'] == 'REPONSE_OK':
-            print u'%s Login' % r['data']['uname']
+            print u'Login Success'
         else:
-            print u'登录失败!'
+            print u'Login Failed'
 
     def sendDanmaku(self, roomid, content, color='white'):
         content = content.strip()
@@ -99,7 +99,7 @@ class Sender(object):
             'id': tv_id,
             '_': int(time.time() * 100)
         }
-        print u'参与 %s 小电视抽奖' % roomid
+        print u'Join %s SmallTV' % roomid
         self._get(TV_URL, params)
 
     def _joinRaffle(self, roomid, raffleId):
@@ -120,7 +120,7 @@ class Sender(object):
             for d in r['data']:
                 raffleId = d['raffleId']
                 if raffleId not in self.raffleIds:
-                    print u'参与 %s 抽奖' % roomid
+                    print u'Join %s Raffle' % roomid
                     self._joinRaffle(roomid, raffleId)
                     self.raffleIds.add(raffleId)
                     thread.start_new_thread(self.checkRaffle, (roomid, raffleId))
@@ -140,7 +140,7 @@ class Sender(object):
                 r = self._get(url, params)
                 if r and r['data']:
                     if r['data']['gift_id'] > 0:
-                        print u'获得奖品: %s 数量: %d' % (r['data']['gift_name'], r['data']['gift_num'])
+                        print u'Get Raffle'
                         self.logger.info('get!name:%s, cnt:%d' % (r['data']['gift_name'], r['data']['gift_num']))
                     elif r['data']['gift_id'] == -1:
                         self.logger.info('empty!')
@@ -191,7 +191,7 @@ class Sender(object):
             if r['data']['time_end'] < cur:
                 self.getFreeSilver(r['data'])
                 return 180
-            print u'%s 秒后再次获取瓜子' % int(r['data']['time_end'] - cur)
+            print u'%s later get FreeSilver' % int(r['data']['time_end'] - cur)
             return int(r['data']['time_end'] - cur)
 
     def startFreeSilverThread(self):
