@@ -8,12 +8,12 @@ def main():
     if len(argv) >= 2:
         path = argv[1]
         config = bili_config.Config(path=path)
-        roomid = config.data.keys()[0]
+        roomid = int(config.data.keys()[0])
         bili.BiliHelper(roomid, *initHandlers(roomid, config_path=path))
 
     else:
         config = bili_config.Config()
-        roomid = config.data.keys()[0]
+        roomid = int(config.data.keys()[0])
     cookies = config.cookies
     sender = bili_sender.Sender(cookies)
     sender.startFreeSilverThread()
