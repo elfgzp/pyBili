@@ -10,10 +10,12 @@ import logging
 import logging.handlers
 import os.path
 import pybili
+import ocr
+import traceback
 
 LOGIN_CHECK_URL = 'http://api.live.bilibili.com/User/getUserInfo'
 SEND_URL = 'http://live.bilibili.com/msg/send'
-TV_URL = 'http://api.live.bilibili.com/SmallTV/join'
+TV_URL = 'http://api.live.bilibili.com/gift/v2/smalltv/join'
 QUERY_RAFFLE_URL = 'http://api.live.bilibili.com/activity/v1/Raffle/check'
 RAFFLE_URL = 'http://api.live.bilibili.com/activity/v1/Raffle/join'
 QUERY_FREE_SILVER = 'http://api.live.bilibili.com/FreeSilver/getCurrentTask'
@@ -96,10 +98,11 @@ class Sender(object):
     def joinSmallTV(self, roomid, tv_id):
         params = {
             'roomid': roomid,
-            'id': tv_id,
+            'raffleId': tv_id,
             '_': int(time.time() * 100)
         }
         print u'Join %s SmallTV' % roomid
+
         self._get(TV_URL, params)
 
     def _joinRaffle(self, roomid, raffleId):
@@ -157,11 +160,13 @@ class Sender(object):
                 sleepTime = self.queryFreeSilver()
                 self.logger.info('queryFreeSilver sleep %ds' % sleepTime)
                 time.sleep(sleepTime)
-            except:
+            except Exception as error:
                 self.logger.warn('query free silver fail!')
+                self.logger.exception(error)
+
             time.sleep(10)
 
-    def downloadCaptcha(self, path='captcha.jpg'):
+    def downloadCaptcha(self, path):
         t = int(time.time() * 1000)
         r = requests.get(CAPTCHA_URL % t, cookies=self.cookies)
         with open(path, 'w') as f:
@@ -169,8 +174,12 @@ class Sender(object):
         return 'ok'
 
     def getFreeSilver(self, data):
-        self.downloadCaptcha()
-        captcha = ocr.recognize('captcha.jpg')
+        self.logger.info('downloadCaptcha...')
+        p = os.path.join(pybili.__workdir__, 'captcha.jpg')
+        self.downloadCaptcha(p)
+        self.logger.info('recognizeCaptcha...')
+        captcha = ocr.recognize(p)
+        self.logger.info('captcha: %d' % captcha)
 
         params = {
             'time_start': data['time_start'],
@@ -178,7 +187,7 @@ class Sender(object):
             'captcha': captcha
         }
         r = self._get(GET_FREE_SILVER, params)
-        if r['code'] == 0: self.logger.info('get %d silver coins' % r['awardSilver'])
+        if r['code'] == 0: self.logger.info('get %d silver coins' % r['data']['awardSilver'])
 
     def queryFreeSilver(self):
         r = self._get(QUERY_FREE_SILVER)
