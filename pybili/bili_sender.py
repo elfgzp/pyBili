@@ -23,6 +23,7 @@ RAFFLE_URL = 'http://api.live.bilibili.com/activity/v1/Raffle/join'
 QUERY_FREE_SILVER = 'http://api.live.bilibili.com/FreeSilver/getCurrentTask'
 GET_FREE_SILVER = 'http://api.live.bilibili.com/FreeSilver/getAward'
 CAPTCHA_URL = 'http://api.live.bilibili.com/freeSilver/getCaptcha?ts=%i'
+ROOM_ENTRY = 'http://api.live.bilibili.com/room/v1/Room/room_entry_action'
 
 
 class Sender(object):
@@ -49,18 +50,28 @@ class Sender(object):
         self.lightenIds = set()
         self.raffleIds = set()
 
-    def _get(self, url, params=None):
+    def _get(self, url, params=None, headers=None):
         try:
-            r = requests.get(url, params=params, cookies=self.cookies)
+            headers = headers if headers else {}
+            cookies = '; '.join([
+                '%s=%s' % (key, val) for key, val in self.cookies.iteritems()
+            ])
+            headers['Cookie'] = cookies
+            r = requests.post(url, data=params, cookies=self.cookies, headers=headers)
             return self._parseHttpResult(url, r)
-        except:
+        except Exception as e:
             self.logger.error("HTTP GET REQ %s fail!" % url)
 
-    def _post(self, url, params=None):
+    def _post(self, url, params=None, headers=None):
         try:
-            r = requests.post(url, data=params, cookies=self.cookies)
+            headers = headers if headers else {}
+            cookies = '; '.join([
+                '%s=%s' % (key, val) for key, val in self.cookies.iteritems()
+            ])
+            headers['Cookie'] = cookies
+            r = requests.post(url, data=params, cookies=self.cookies, headers=headers)
             return self._parseHttpResult(url, r)
-        except:
+        except Exception as e:
             self.logger.error("HTTP POST REQ %s fail!" % url)
 
     def _parseHttpResult(self, url, r):
@@ -109,10 +120,16 @@ class Sender(object):
 
     def _joinRaffle(self, roomid, raffleId):
         params = {
-            'roomid': roomid,
+            'roomid': int(roomid),
             'raffleId': raffleId
         }
-        r = self._post(RAFFLE_URL, params)
+        headers = {
+            'Host': 'api.live.bilibili.com',
+            'Origin': 'http://live.bilibili.com',
+            'Referer': 'http://live.bilibili.com/%s' % roomid,
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:57.0) Gecko/20100101 Firefox/57.0'
+        }
+        r = self._get(RAFFLE_URL, params, headers=headers)
         if r:
             self.logger.debug('join raffle: %s' % r['msg'])
 
