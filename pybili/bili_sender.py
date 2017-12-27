@@ -12,6 +12,8 @@ import os.path
 import pybili
 import ocr
 import traceback
+from PIL import Image
+import StringIO
 
 LOGIN_CHECK_URL = 'http://api.live.bilibili.com/User/getUserInfo'
 SEND_URL = 'http://live.bilibili.com/msg/send'
@@ -166,21 +168,18 @@ class Sender(object):
 
             time.sleep(10)
 
-    def downloadCaptcha(self, path):
+    def downloadCaptcha(self):
         t = int(time.time() * 1000)
         r = requests.get(CAPTCHA_URL % t, cookies=self.cookies)
-        with open(path, 'w') as f:
-            for chunk in r: f.write(chunk)
-        return 'ok'
+        imgBuf = StringIO.StringIO(r.content)  # 采用StringIO直接将验证码文件写到内存，省去写入硬盘
+        img = Image.open(imgBuf)  # PIL库加载图片
+        return img
 
     def getFreeSilver(self, data):
         self.logger.info('downloadCaptcha...')
-        p = os.path.join(pybili.__workdir__, 'captcha.jpg')
-        self.downloadCaptcha(p)
-        self.logger.info('recognizeCaptcha...')
-        captcha = ocr.recognize(p)
+        img = self.downloadCaptcha()
+        captcha = ocr.recognize(img)
         self.logger.info('captcha: %d' % captcha)
-
         params = {
             'time_start': data['time_start'],
             'end_time': data['time_end'],
