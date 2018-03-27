@@ -10,7 +10,6 @@ import logging
 import logging.handlers
 import os.path
 import pybili
-import ocr
 import traceback
 from PIL import Image
 import StringIO
@@ -221,9 +220,13 @@ class Sender(object):
 
     def startFreeSilverThread(self):
         print 'init ocr function...'
-        if self.cookies:
-            print 'checking free silver coins...'
-            thread.start_new_thread(self.checkFreeSilver, ())
+        try:
+            import ocr
+            if self.cookies:
+                print 'checking free silver coins...'
+                thread.start_new_thread(self.checkFreeSilver, ())
+        except:
+            self.logger.error('cannot start checkFreeSilver thread')
 
 
 def main():
