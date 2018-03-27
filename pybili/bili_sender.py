@@ -19,10 +19,12 @@ SEND_URL = 'http://live.bilibili.com/msg/send'
 TV_URL = 'http://api.live.bilibili.com/gift/v2/smalltv/join'
 QUERY_RAFFLE_URL = 'http://api.live.bilibili.com/activity/v1/Raffle/check'
 RAFFLE_URL = 'http://api.live.bilibili.com/activity/v1/Raffle/join'
-QUERY_FREE_SILVER = 'http://api.live.bilibili.com/FreeSilver/getCurrentTask'
-GET_FREE_SILVER = 'http://api.live.bilibili.com/FreeSilver/getAward'
-CAPTCHA_URL = 'http://api.live.bilibili.com/freeSilver/getCaptcha?ts=%i'
-ROOM_ENTRY = 'http://api.live.bilibili.com/room/v1/Room/room_entry_action'
+QUERY_FREE_SILVER = 'http://api.live.bilibili.com/lottery/v1/SilverBox/getCurrentTask'
+GET_FREE_SILVER = 'http://api.live.bilibili.com/lottery/v1/SilverBox/getAward'
+CAPTCHA_URL = 'http://api.live.bilibili.com/lottery/v1/SilverBox/getCaptcha?ts=%i'
+SIGN_IN_URL = ''
+GET_SIGN_INFO_URL = 'http://api.live.bilibili.com/sign/GetSignInfo'
+GET_USER_INFO_URL = 'http://live.bilibili.com/user/getuserinfo'
 
 
 class Sender(object):
@@ -79,6 +81,11 @@ class Sender(object):
         self.logger.debug(raw)
         if raw['code'] != 0:
             self.logger.warn("API %s fail! MSG: %s" % (url, raw['msg']))
+
+        if raw['code'] == 65531:
+            self.logger.warn("API %s fail! WRONG HEADER!" % (url))
+        elif raw['code'] != 0 and raw['code'] != 'REPONSE_OK':
+            self.logger.warn("API %s fail! MSG: %s" % (url, raw['msg']))
         return raw
 
     def checkLogin(self):
@@ -87,6 +94,17 @@ class Sender(object):
             print u'Login Success'
         else:
             print u'Login Failed'
+
+    def isCookieValid(self):
+        raw = self._get(GET_USER_INFO_URL)
+        if raw['code'] != 0 and raw['code'] != 'REPONSE_OK':
+            return raw['msg']
+        else:
+            uname = raw['data']['uname']
+            return 'OK, welcome %s' % uname
+
+    def signIn(self):
+        return self._get(SIGN_IN_URL)
 
     def sendDanmaku(self, roomid, content, color='white'):
         content = content.strip()
@@ -118,6 +136,10 @@ class Sender(object):
         self._get(TV_URL, params)
 
     def _joinRaffle(self, roomid, raffleId):
+        room_data = self._get('http://api.live.bilibili.com/room/v1/Room/room_init?id=%s' % roomid)['data']
+        self.headers['Referer'] = 'http://live.bilibili.com/%s' % (
+        room_data['short_id'] if room_data['short_id'] != 0 else room_data['room_id'])
+
         params = {
             'roomid': int(roomid),
             'raffleId': raffleId
@@ -147,7 +169,6 @@ class Sender(object):
                     thread.start_new_thread(self.checkRaffle, (roomid, raffleId))
 
     def checkRaffle(self, roomid, raffleId):
-
         try:
             re_check = True
             while re_check:
@@ -221,6 +242,7 @@ class Sender(object):
     def startFreeSilverThread(self):
         print 'init ocr function...'
         try:
+            global ocr
             import ocr
             if self.cookies:
                 print 'checking free silver coins...'
