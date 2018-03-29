@@ -63,7 +63,7 @@ class Sender(object):
                 '%s=%s' % (key, val) for key, val in self.cookies.iteritems()
             ])
             headers['Cookie'] = cookies
-            r = requests.post(url, data=params, cookies=self.cookies, headers=headers)
+            r = requests.post(url, data=params, cookies=self.cookies, headers=self.headers)
             return self._parseHttpResult(url, r)
         except Exception as e:
             self.logger.error("HTTP GET REQ %s fail!" % url)
@@ -75,7 +75,7 @@ class Sender(object):
                 '%s=%s' % (key, val) for key, val in self.cookies.iteritems()
             ])
             headers['Cookie'] = cookies
-            r = requests.post(url, data=params, cookies=self.cookies, headers=headers)
+            r = requests.post(url, data=params, cookies=self.cookies, headers=self.headers)
             return self._parseHttpResult(url, r)
         except Exception as e:
             self.logger.error("HTTP POST REQ %s fail!" % url)
@@ -155,7 +155,7 @@ class Sender(object):
             'Referer': 'http://live.bilibili.com/%s' % roomid,
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:57.0) Gecko/20100101 Firefox/57.0'
         }
-        r = self._get(RAFFLE_URL, params, headers=headers)
+        r = self._get(RAFFLE_URL, params, headers=self.headers)
         if r:
             self.logger.debug('join raffle: %s' % r['msg'])
 
