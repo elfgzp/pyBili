@@ -232,6 +232,7 @@ class AutoRaffleRewardHandler(SimpleDanmakuHandler):
                 if 'roomid' in raw and 'giftId' in raw:
                     roomid = str(raw['roomid'])
                     giftId = str(raw['giftId'])
+                    time.sleep(5)
                     self.sender.joinRaffle(roomid, giftId)
         
 def main():

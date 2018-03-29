@@ -144,16 +144,10 @@ class Sender(object):
         room_data = self._get('http://api.live.bilibili.com/room/v1/Room/room_init?id=%s' % roomid)['data']
         self.headers['Referer'] = 'http://live.bilibili.com/%s' % (
             room_data['short_id'] if room_data['short_id'] != 0 else room_data['room_id'])
-
+        self.headers['Origin'] = 'http://live.bilibili.com'
         params = {
             'roomid': int(roomid),
             'raffleId': raffleId
-        }
-        headers = {
-            'Host': 'api.live.bilibili.com',
-            'Origin': 'http://live.bilibili.com',
-            'Referer': 'http://live.bilibili.com/%s' % roomid,
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:57.0) Gecko/20100101 Firefox/57.0'
         }
         r = self._get(RAFFLE_URL, params, headers=self.headers)
         if r:
@@ -169,6 +163,7 @@ class Sender(object):
                 raffleId = d['raffleId']
                 if raffleId not in self.raffleIds:
                     print u'Join %s Raffle' % roomid
+                    time.sleep(5)
                     self._joinRaffle(roomid, raffleId)
                     self.raffleIds.add(raffleId)
                     thread.start_new_thread(self.checkRaffle, (roomid, raffleId))
