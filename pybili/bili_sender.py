@@ -28,6 +28,11 @@ GET_USER_INFO_URL = 'http://live.bilibili.com/user/getuserinfo'
 
 
 class Sender(object):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
+        'Host': 'api.live.bilibili.com',
+    }
+
     def _initLogger(self, logger):
         logger.setLevel(pybili.__loglevel__)
         ch = logging.handlers.TimedRotatingFileHandler(os.path.join(pybili.__workdir__, 'bili_sender.log'),
@@ -138,7 +143,7 @@ class Sender(object):
     def _joinRaffle(self, roomid, raffleId):
         room_data = self._get('http://api.live.bilibili.com/room/v1/Room/room_init?id=%s' % roomid)['data']
         self.headers['Referer'] = 'http://live.bilibili.com/%s' % (
-        room_data['short_id'] if room_data['short_id'] != 0 else room_data['room_id'])
+            room_data['short_id'] if room_data['short_id'] != 0 else room_data['room_id'])
 
         params = {
             'roomid': int(roomid),
